@@ -14,7 +14,258 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      answers: {
+        Row: {
+          answer_text: string
+          color_index: number
+          id: string
+          is_correct: boolean
+          order_index: number
+          question_id: string
+        }
+        Insert: {
+          answer_text: string
+          color_index?: number
+          id?: string
+          is_correct?: boolean
+          order_index?: number
+          question_id: string
+        }
+        Update: {
+          answer_text?: string
+          color_index?: number
+          id?: string
+          is_correct?: boolean
+          order_index?: number
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_sessions: {
+        Row: {
+          created_at: string
+          current_question_index: number
+          host_id: string
+          id: string
+          pin: string
+          question_started_at: string | null
+          quiz_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          current_question_index?: number
+          host_id: string
+          id?: string
+          pin: string
+          question_started_at?: string | null
+          quiz_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          current_question_index?: number
+          host_id?: string
+          id?: string
+          pin?: string
+          question_started_at?: string | null
+          quiz_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_sessions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_answers: {
+        Row: {
+          answer_id: string | null
+          created_at: string
+          id: string
+          player_id: string
+          points_awarded: number
+          question_id: string
+          response_time_ms: number
+        }
+        Insert: {
+          answer_id?: string | null
+          created_at?: string
+          id?: string
+          player_id: string
+          points_awarded?: number
+          question_id: string
+          response_time_ms?: number
+        }
+        Update: {
+          answer_id?: string | null
+          created_at?: string
+          id?: string
+          player_id?: string
+          points_awarded?: number
+          question_id?: string
+          response_time_ms?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_answers_answer_id_fkey"
+            columns: ["answer_id"]
+            isOneToOne: false
+            referencedRelation: "answers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_answers_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      players: {
+        Row: {
+          id: string
+          joined_at: string
+          nickname: string
+          score: number
+          session_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          nickname: string
+          score?: number
+          session_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          nickname?: string
+          score?: number
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "game_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          order_index: number
+          points: number
+          question_text: string
+          quiz_id: string
+          time_limit: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          order_index?: number
+          points?: number
+          question_text: string
+          quiz_id: string
+          time_limit?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          order_index?: number
+          points?: number
+          question_text?: string
+          quiz_id?: string
+          time_limit?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          created_at: string
+          description: string | null
+          host_id: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          host_id: string
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          host_id?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
