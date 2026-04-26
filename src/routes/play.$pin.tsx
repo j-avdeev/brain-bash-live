@@ -276,6 +276,20 @@ function PlayerView() {
 
   // Reveal
   if (session.status === "reveal") {
+    if (currentQuestion?.is_poll) {
+      return (
+        <CenteredCard
+          nickname={nickname}
+          score={score}
+          title="Thanks for voting!"
+          subtitle="Check the host screen for results."
+        >
+          <div className="mt-6 flex h-20 w-20 items-center justify-center rounded-full bg-answer-2 text-white">
+            <Check className="h-10 w-10" />
+          </div>
+        </CenteredCard>
+      );
+    }
     const correct = lastResult?.correct;
     return (
       <CenteredCard
