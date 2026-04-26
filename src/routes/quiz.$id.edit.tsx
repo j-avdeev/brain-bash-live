@@ -385,16 +385,20 @@ function QuizEditor() {
                 <Input id="time" type="number" min={5} max={120} value={active.time_limit}
                   onChange={(e) => updateActive({ time_limit: Math.max(5, Math.min(120, Number(e.target.value) || 20)) })} />
               </div>
-              <div>
-                <Label htmlFor="pts">Points</Label>
-                <Input id="pts" type="number" min={0} max={5000} step={100} value={active.points}
-                  onChange={(e) => updateActive({ points: Math.max(0, Math.min(5000, Number(e.target.value) || 1000)) })} />
-              </div>
+              {!active.is_poll && (
+                <div>
+                  <Label htmlFor="pts">Points</Label>
+                  <Input id="pts" type="number" min={0} max={5000} step={100} value={active.points}
+                    onChange={(e) => updateActive({ points: Math.max(0, Math.min(5000, Number(e.target.value) || 1000)) })} />
+                </div>
+              )}
             </div>
 
             <div>
               <div className="flex items-center justify-between">
-                <Label>Answers (tap check to mark correct)</Label>
+                <Label>
+                  {active.is_poll ? "Options (no correct answer — players just vote)" : "Answers (tap check to mark correct)"}
+                </Label>
                 {active.answers.length < 4 && (
                   <Button size="sm" variant="ghost" onClick={addAnswer}><Plus className="mr-1 h-3 w-3" /> Add</Button>
                 )}
@@ -403,15 +407,21 @@ function QuizEditor() {
                 {active.answers.map((a, ai) => (
                   <div key={ai} className={`relative rounded-2xl p-1 ${ANSWER_COLORS[a.color_index % 4]}`}>
                     <div className="flex items-center gap-2 rounded-xl bg-card/95 p-2">
-                      <button
-                        onClick={() => updateAnswer(ai, { is_correct: !a.is_correct })}
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 transition ${
-                          a.is_correct ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"
-                        }`}
-                        aria-label={a.is_correct ? "Correct" : "Mark correct"}
-                      >
-                        {a.is_correct && <Check className="h-5 w-5" />}
-                      </button>
+                      {active.is_poll ? (
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary font-display text-lg font-bold">
+                          {["▲", "◆", "●", "■"][a.color_index % 4]}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => updateAnswer(ai, { is_correct: !a.is_correct })}
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 transition ${
+                            a.is_correct ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"
+                          }`}
+                          aria-label={a.is_correct ? "Correct" : "Mark correct"}
+                        >
+                          {a.is_correct && <Check className="h-5 w-5" />}
+                        </button>
+                      )}
                       <Input
                         value={a.answer_text}
                         onChange={(e) => updateAnswer(ai, { answer_text: e.target.value })}
