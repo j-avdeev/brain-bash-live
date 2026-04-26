@@ -9,38 +9,121 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlayPinRouteImport } from './routes/play.$pin'
+import { Route as HostSessionIdRouteImport } from './routes/host.$sessionId'
+import { Route as QuizIdEditRouteImport } from './routes/quiz.$id.edit'
 
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayPinRoute = PlayPinRouteImport.update({
+  id: '/play/$pin',
+  path: '/play/$pin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HostSessionIdRoute = HostSessionIdRouteImport.update({
+  id: '/host/$sessionId',
+  path: '/host/$sessionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuizIdEditRoute = QuizIdEditRouteImport.update({
+  id: '/quiz/$id/edit',
+  path: '/quiz/$id/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/dashboard': typeof DashboardRoute
+  '/host/$sessionId': typeof HostSessionIdRoute
+  '/play/$pin': typeof PlayPinRoute
+  '/quiz/$id/edit': typeof QuizIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/dashboard': typeof DashboardRoute
+  '/host/$sessionId': typeof HostSessionIdRoute
+  '/play/$pin': typeof PlayPinRoute
+  '/quiz/$id/edit': typeof QuizIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/dashboard': typeof DashboardRoute
+  '/host/$sessionId': typeof HostSessionIdRoute
+  '/play/$pin': typeof PlayPinRoute
+  '/quiz/$id/edit': typeof QuizIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/host/$sessionId'
+    | '/play/$pin'
+    | '/quiz/$id/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/host/$sessionId'
+    | '/play/$pin'
+    | '/quiz/$id/edit'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/host/$sessionId'
+    | '/play/$pin'
+    | '/quiz/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
+  DashboardRoute: typeof DashboardRoute
+  HostSessionIdRoute: typeof HostSessionIdRoute
+  PlayPinRoute: typeof PlayPinRoute
+  QuizIdEditRoute: typeof QuizIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +131,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/$pin': {
+      id: '/play/$pin'
+      path: '/play/$pin'
+      fullPath: '/play/$pin'
+      preLoaderRoute: typeof PlayPinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/host/$sessionId': {
+      id: '/host/$sessionId'
+      path: '/host/$sessionId'
+      fullPath: '/host/$sessionId'
+      preLoaderRoute: typeof HostSessionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quiz/$id/edit': {
+      id: '/quiz/$id/edit'
+      path: '/quiz/$id/edit'
+      fullPath: '/quiz/$id/edit'
+      preLoaderRoute: typeof QuizIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
+  DashboardRoute: DashboardRoute,
+  HostSessionIdRoute: HostSessionIdRoute,
+  PlayPinRoute: PlayPinRoute,
+  QuizIdEditRoute: QuizIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
