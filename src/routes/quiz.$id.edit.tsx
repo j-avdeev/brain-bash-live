@@ -8,7 +8,8 @@ import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, ChevronUp, ChevronDown, Check, ImagePlus, X, Play } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, Check, ImagePlus, X, Play, BarChart3 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/quiz/$id/edit")({
   component: QuizEditor,
@@ -29,6 +30,7 @@ interface QuestionDraft {
   time_limit: number;
   points: number;
   order_index: number;
+  is_poll: boolean;
   answers: AnswerDraft[];
   _isNew?: boolean;
   _dirty?: boolean;
@@ -53,6 +55,7 @@ function emptyQuestion(order: number): QuestionDraft {
     time_limit: 20,
     points: 1000,
     order_index: order,
+    is_poll: false,
     answers: emptyAnswers(),
     _isNew: true,
     _dirty: true,
