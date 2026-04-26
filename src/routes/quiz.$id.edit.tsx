@@ -95,6 +95,7 @@ function QuizEditor() {
         time_limit: q.time_limit,
         points: q.points,
         order_index: q.order_index,
+        is_poll: (q as { is_poll?: boolean }).is_poll ?? false,
         answers: (q.answers as AnswerDraft[])
           .sort((a, b) => a.order_index - b.order_index)
           .map((a) => ({ ...a })),
@@ -122,41 +123,39 @@ function QuizEditor() {
       toast.error(`Question ${idx + 1} needs at least 2 answers`);
       return null;
     }
-    if (!validAnswers.some((a) => a.is_correct)) {
-      toast.error(`Question ${idx + 1} needs at least one correct answer`);
+    if (!q.is_poll && !validAnswers.some((a) => a.is_correct)) {
+      toast.error(`Question ${idx + 1} needs at least one correct answer (or mark it as a poll)`);
       return null;
     }
 
     let questionId = q.id;
+    const payload = {
+      quiz_id: id,
+      question_text: q.question_text,
+      image_url: q.image_url,
+      time_limit: q.time_limit,
+      points: q.is_poll ? 0 : q.points,
+      order_index: idx,
+      is_poll: q.is_poll,
+    };
     if (!questionId) {
-      const { data, error } = await supabase.from("questions").insert({
-        quiz_id: id,
-        question_text: q.question_text,
-        image_url: q.image_url,
-        time_limit: q.time_limit,
-        points: q.points,
-        order_index: idx,
-      }).select("id").single();
+      const { data, error } = await supabase.from("questions").insert(payload).select("id").single();
       if (error || !data) { toast.error(error?.message ?? "Save failed"); return null; }
       questionId = data.id;
     } else {
-      await supabase.from("questions").update({
-        question_text: q.question_text,
-        image_url: q.image_url,
-        time_limit: q.time_limit,
-        points: q.points,
-        order_index: idx,
-      }).eq("id", questionId);
+      const { quiz_id: _qid, ...update } = payload;
+      void _qid;
+      await supabase.from("questions").update(update).eq("id", questionId);
     }
 
-    // Replace all answers (simpler than diffing)
+    // Replace all answers (simpler than diffing). Polls store all answers as is_correct=false.
     await supabase.from("answers").delete().eq("question_id", questionId);
     if (validAnswers.length) {
       await supabase.from("answers").insert(
         validAnswers.map((a, i) => ({
           question_id: questionId!,
           answer_text: a.answer_text,
-          is_correct: a.is_correct,
+          is_correct: q.is_poll ? false : a.is_correct,
           color_index: a.color_index,
           order_index: i,
         })),
