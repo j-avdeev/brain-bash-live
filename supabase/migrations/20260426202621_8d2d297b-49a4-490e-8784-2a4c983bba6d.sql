@@ -1,0 +1,1 @@
+ALTER TABLE public.questions ADD COLUMN is_poll boolean NOT NULL DEFAULT false;

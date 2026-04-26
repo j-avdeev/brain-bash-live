@@ -8,6 +8,7 @@ export interface QuestionWithAnswers {
   time_limit: number;
   points: number;
   order_index: number;
+  is_poll: boolean;
   answers: AnswerRow[];
 }
 

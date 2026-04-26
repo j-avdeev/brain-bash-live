@@ -163,7 +163,11 @@ function PlayerView() {
       ? Date.now() - new Date(session.question_started_at).getTime()
       : 0;
     const ans = currentQuestion.answers.find((a) => a.id === answerId);
-    const points = ans?.is_correct ? computePoints(currentQuestion.points, responseMs, currentQuestion.time_limit) : 0;
+    const points = currentQuestion.is_poll
+      ? 0
+      : ans?.is_correct
+        ? computePoints(currentQuestion.points, responseMs, currentQuestion.time_limit)
+        : 0;
     const { error } = await supabase.from("player_answers").insert({
       player_id: playerId,
       question_id: currentQuestion.id,
@@ -236,7 +240,9 @@ function PlayerView() {
         <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 pb-6">
           {submitted ? (
             <div className="flex flex-1 flex-col items-center justify-center text-center animate-slide-up">
-              <div className="font-display text-2xl font-bold">Answer locked in!</div>
+              <div className="font-display text-2xl font-bold">
+                {currentQuestion.is_poll ? "Vote recorded!" : "Answer locked in!"}
+              </div>
               <p className="mt-2 text-muted-foreground">Hang tight — waiting for everyone else.</p>
               <div className="mt-8 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-glow">
                 <span className="font-display text-2xl font-bold">{timeLeft}</span>
@@ -270,6 +276,20 @@ function PlayerView() {
 
   // Reveal
   if (session.status === "reveal") {
+    if (currentQuestion?.is_poll) {
+      return (
+        <CenteredCard
+          nickname={nickname}
+          score={score}
+          title="Thanks for voting!"
+          subtitle="Check the host screen for results."
+        >
+          <div className="mt-6 flex h-20 w-20 items-center justify-center rounded-full bg-answer-2 text-white">
+            <Check className="h-10 w-10" />
+          </div>
+        </CenteredCard>
+      );
+    }
     const correct = lastResult?.correct;
     return (
       <CenteredCard

@@ -8,7 +8,8 @@ import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, ChevronUp, ChevronDown, Check, ImagePlus, X, Play } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, Check, ImagePlus, X, Play, BarChart3 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/quiz/$id/edit")({
   component: QuizEditor,
@@ -29,6 +30,7 @@ interface QuestionDraft {
   time_limit: number;
   points: number;
   order_index: number;
+  is_poll: boolean;
   answers: AnswerDraft[];
   _isNew?: boolean;
   _dirty?: boolean;
@@ -53,6 +55,7 @@ function emptyQuestion(order: number): QuestionDraft {
     time_limit: 20,
     points: 1000,
     order_index: order,
+    is_poll: false,
     answers: emptyAnswers(),
     _isNew: true,
     _dirty: true,
@@ -92,6 +95,7 @@ function QuizEditor() {
         time_limit: q.time_limit,
         points: q.points,
         order_index: q.order_index,
+        is_poll: (q as { is_poll?: boolean }).is_poll ?? false,
         answers: (q.answers as AnswerDraft[])
           .sort((a, b) => a.order_index - b.order_index)
           .map((a) => ({ ...a })),
@@ -119,41 +123,39 @@ function QuizEditor() {
       toast.error(`Question ${idx + 1} needs at least 2 answers`);
       return null;
     }
-    if (!validAnswers.some((a) => a.is_correct)) {
-      toast.error(`Question ${idx + 1} needs at least one correct answer`);
+    if (!q.is_poll && !validAnswers.some((a) => a.is_correct)) {
+      toast.error(`Question ${idx + 1} needs at least one correct answer (or mark it as a poll)`);
       return null;
     }
 
     let questionId = q.id;
+    const payload = {
+      quiz_id: id,
+      question_text: q.question_text,
+      image_url: q.image_url,
+      time_limit: q.time_limit,
+      points: q.is_poll ? 0 : q.points,
+      order_index: idx,
+      is_poll: q.is_poll,
+    };
     if (!questionId) {
-      const { data, error } = await supabase.from("questions").insert({
-        quiz_id: id,
-        question_text: q.question_text,
-        image_url: q.image_url,
-        time_limit: q.time_limit,
-        points: q.points,
-        order_index: idx,
-      }).select("id").single();
+      const { data, error } = await supabase.from("questions").insert(payload).select("id").single();
       if (error || !data) { toast.error(error?.message ?? "Save failed"); return null; }
       questionId = data.id;
     } else {
-      await supabase.from("questions").update({
-        question_text: q.question_text,
-        image_url: q.image_url,
-        time_limit: q.time_limit,
-        points: q.points,
-        order_index: idx,
-      }).eq("id", questionId);
+      const { quiz_id: _qid, ...update } = payload;
+      void _qid;
+      await supabase.from("questions").update(update).eq("id", questionId);
     }
 
-    // Replace all answers (simpler than diffing)
+    // Replace all answers (simpler than diffing). Polls store all answers as is_correct=false.
     await supabase.from("answers").delete().eq("question_id", questionId);
     if (validAnswers.length) {
       await supabase.from("answers").insert(
         validAnswers.map((a, i) => ({
           question_id: questionId!,
           answer_text: a.answer_text,
-          is_correct: a.is_correct,
+          is_correct: q.is_poll ? false : a.is_correct,
           color_index: a.color_index,
           order_index: i,
         })),
@@ -307,18 +309,34 @@ function QuizEditor() {
 
         {/* Editor */}
         <section className="rounded-3xl border border-border bg-card p-5 shadow-card sm:p-7">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold">Question {activeIdx + 1}</h2>
-            <div className="flex gap-1">
-              <Button size="sm" variant="ghost" onClick={() => moveQuestion(activeIdx, -1)} disabled={activeIdx === 0}>
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => moveQuestion(activeIdx, 1)} disabled={activeIdx === questions.length - 1}>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => removeQuestion(activeIdx)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <h2 className="font-display text-xl font-bold">Question {activeIdx + 1}</h2>
+              {active.is_poll && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-answer-2/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-answer-2">
+                  <BarChart3 className="h-3 w-3" /> Poll
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Poll mode
+                <Switch
+                  checked={active.is_poll}
+                  onCheckedChange={(v) => updateActive({ is_poll: v })}
+                />
+              </label>
+              <div className="flex gap-1">
+                <Button size="sm" variant="ghost" onClick={() => moveQuestion(activeIdx, -1)} disabled={activeIdx === 0}>
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => moveQuestion(activeIdx, 1)} disabled={activeIdx === questions.length - 1}>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => removeQuestion(activeIdx)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -367,16 +385,20 @@ function QuizEditor() {
                 <Input id="time" type="number" min={5} max={120} value={active.time_limit}
                   onChange={(e) => updateActive({ time_limit: Math.max(5, Math.min(120, Number(e.target.value) || 20)) })} />
               </div>
-              <div>
-                <Label htmlFor="pts">Points</Label>
-                <Input id="pts" type="number" min={0} max={5000} step={100} value={active.points}
-                  onChange={(e) => updateActive({ points: Math.max(0, Math.min(5000, Number(e.target.value) || 1000)) })} />
-              </div>
+              {!active.is_poll && (
+                <div>
+                  <Label htmlFor="pts">Points</Label>
+                  <Input id="pts" type="number" min={0} max={5000} step={100} value={active.points}
+                    onChange={(e) => updateActive({ points: Math.max(0, Math.min(5000, Number(e.target.value) || 1000)) })} />
+                </div>
+              )}
             </div>
 
             <div>
               <div className="flex items-center justify-between">
-                <Label>Answers (tap check to mark correct)</Label>
+                <Label>
+                  {active.is_poll ? "Options (no correct answer — players just vote)" : "Answers (tap check to mark correct)"}
+                </Label>
                 {active.answers.length < 4 && (
                   <Button size="sm" variant="ghost" onClick={addAnswer}><Plus className="mr-1 h-3 w-3" /> Add</Button>
                 )}
@@ -385,15 +407,21 @@ function QuizEditor() {
                 {active.answers.map((a, ai) => (
                   <div key={ai} className={`relative rounded-2xl p-1 ${ANSWER_COLORS[a.color_index % 4]}`}>
                     <div className="flex items-center gap-2 rounded-xl bg-card/95 p-2">
-                      <button
-                        onClick={() => updateAnswer(ai, { is_correct: !a.is_correct })}
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 transition ${
-                          a.is_correct ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"
-                        }`}
-                        aria-label={a.is_correct ? "Correct" : "Mark correct"}
-                      >
-                        {a.is_correct && <Check className="h-5 w-5" />}
-                      </button>
+                      {active.is_poll ? (
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary font-display text-lg font-bold">
+                          {["▲", "◆", "●", "■"][a.color_index % 4]}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => updateAnswer(ai, { is_correct: !a.is_correct })}
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 transition ${
+                            a.is_correct ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"
+                          }`}
+                          aria-label={a.is_correct ? "Correct" : "Mark correct"}
+                        >
+                          {a.is_correct && <Check className="h-5 w-5" />}
+                        </button>
+                      )}
                       <Input
                         value={a.answer_text}
                         onChange={(e) => updateAnswer(ai, { answer_text: e.target.value })}
