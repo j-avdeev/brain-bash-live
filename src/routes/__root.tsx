@@ -35,6 +35,10 @@ export const Route = createRootRoute({
       { property: "og:description", content: "Create and host live interactive quizzes. Players join with a PIN — no signup required." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "QuizPop — Live Interactive Quiz Game" },
+      { name: "twitter:description", content: "Create and host live interactive quizzes. Players join with a PIN — no signup required." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e88ff32b-75ab-4dd0-bde7-b432ae2623ca/id-preview-74a12719--b16e2520-cde2-47ea-b185-dfc4df046495.lovable.app-1777203774774.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e88ff32b-75ab-4dd0-bde7-b432ae2623ca/id-preview-74a12719--b16e2520-cde2-47ea-b185-dfc4df046495.lovable.app-1777203774774.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
