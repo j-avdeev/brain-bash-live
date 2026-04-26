@@ -309,18 +309,34 @@ function QuizEditor() {
 
         {/* Editor */}
         <section className="rounded-3xl border border-border bg-card p-5 shadow-card sm:p-7">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold">Question {activeIdx + 1}</h2>
-            <div className="flex gap-1">
-              <Button size="sm" variant="ghost" onClick={() => moveQuestion(activeIdx, -1)} disabled={activeIdx === 0}>
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => moveQuestion(activeIdx, 1)} disabled={activeIdx === questions.length - 1}>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => removeQuestion(activeIdx)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <h2 className="font-display text-xl font-bold">Question {activeIdx + 1}</h2>
+              {active.is_poll && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-answer-2/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-answer-2">
+                  <BarChart3 className="h-3 w-3" /> Poll
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Poll mode
+                <Switch
+                  checked={active.is_poll}
+                  onCheckedChange={(v) => updateActive({ is_poll: v })}
+                />
+              </label>
+              <div className="flex gap-1">
+                <Button size="sm" variant="ghost" onClick={() => moveQuestion(activeIdx, -1)} disabled={activeIdx === 0}>
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => moveQuestion(activeIdx, 1)} disabled={activeIdx === questions.length - 1}>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => removeQuestion(activeIdx)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
             </div>
           </div>
 
