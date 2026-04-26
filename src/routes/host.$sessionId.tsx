@@ -202,6 +202,7 @@ function HostView() {
             answers={answersCount}
             playersCount={players.length}
             status={session.status}
+            sessionId={sessionId}
             onSkip={revealAnswers}
             onNext={next}
             sortedPlayers={sortedPlayers}
@@ -257,7 +258,7 @@ function Lobby({ pin, players, onStart, canStart }: { pin: string; players: Play
 }
 
 function HostQuestion({
-  q, idx, total, timeLeft, answers, playersCount, status, onSkip, onNext, sortedPlayers,
+  q, idx, total, timeLeft, answers, playersCount, status, sessionId, onSkip, onNext, sortedPlayers,
 }: {
   q: QuestionWithAnswers;
   idx: number;
@@ -266,18 +267,44 @@ function HostQuestion({
   answers: number;
   playersCount: number;
   status: SessionStatus;
+  sessionId: string;
   onSkip: () => void;
   onNext: () => void;
   sortedPlayers: PlayerRow[];
 }) {
+  const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
+  void sessionId;
+
+  // Fetch vote tallies on reveal (used for both polls and quiz questions for richer reveal)
+  useEffect(() => {
+    if (status !== "reveal") return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("player_answers")
+        .select("answer_id")
+        .eq("question_id", q.id);
+      const tally: Record<string, number> = {};
+      for (const row of data ?? []) {
+        if (row.answer_id) tally[row.answer_id] = (tally[row.answer_id] ?? 0) + 1;
+      }
+      if (!cancelled) setVoteCounts(tally);
+    })();
+    return () => { cancelled = true; };
+  }, [status, q.id]);
+
+  const totalVotes = Object.values(voteCounts).reduce((a, b) => a + b, 0);
+
   return (
     <div className="space-y-6 animate-slide-up">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold uppercase tracking-wider text-primary">Question {idx + 1} / {total}</span>
+        <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-primary">
+          {q.is_poll ? "Poll" : "Question"} {idx + 1} / {total}
+        </span>
         {status === "question" ? (
           <div className="flex items-center gap-3">
             <span className="rounded-full bg-secondary px-3 py-1 text-sm font-semibold">
-              {answers} / {playersCount} answered
+              {answers} / {playersCount} {q.is_poll ? "voted" : "answered"}
             </span>
             <Button variant="outline" size="sm" onClick={onSkip}><SkipForward className="mr-1 h-4 w-4" /> Skip</Button>
           </div>
@@ -304,24 +331,36 @@ function HostQuestion({
 
       <div className="grid gap-3 sm:grid-cols-2">
         {q.answers.map((a) => {
-          const showCorrect = status === "reveal";
-          const dim = showCorrect && !a.is_correct;
+          const showReveal = status === "reveal";
+          const dim = showReveal && !q.is_poll && !a.is_correct;
+          const count = voteCounts[a.id] ?? 0;
+          const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
           return (
             <div
               key={a.id}
-              className={`relative flex items-center gap-4 rounded-2xl p-5 text-white shadow-card transition ${ANSWER_BG[a.color_index % 4]} ${dim ? "opacity-40" : ""}`}
+              className={`relative overflow-hidden rounded-2xl p-5 text-white shadow-card transition ${ANSWER_BG[a.color_index % 4]} ${dim ? "opacity-40" : ""}`}
             >
-              <span className="font-display text-2xl">{ANSWER_SHAPES[a.color_index % 4]}</span>
-              <span className="flex-1 font-display text-lg font-bold">{a.answer_text}</span>
-              {showCorrect && a.is_correct && (
-                <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase">Correct</span>
+              {showReveal && (
+                <div
+                  className="absolute inset-y-0 left-0 bg-white/15 transition-all"
+                  style={{ width: `${pct}%` }}
+                />
               )}
+              <div className="relative flex items-center gap-4">
+                <span className="font-display text-2xl">{ANSWER_SHAPES[a.color_index % 4]}</span>
+                <span className="flex-1 font-display text-lg font-bold">{a.answer_text}</span>
+                {showReveal && (
+                  <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase">
+                    {q.is_poll ? `${count} ${count === 1 ? "vote" : "votes"} · ${pct}%` : a.is_correct ? "Correct" : `${count}`}
+                  </span>
+                )}
+              </div>
             </div>
           );
         })}
       </div>
 
-      {status === "reveal" && (
+      {status === "reveal" && !q.is_poll && (
         <div className="rounded-3xl border border-border bg-card p-6 shadow-card">
           <h2 className="flex items-center gap-2 font-display text-lg font-bold"><Trophy className="h-5 w-5 text-primary" /> Leaderboard</h2>
           <div className="mt-4 space-y-2">
