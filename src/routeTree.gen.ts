@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlayPinRouteImport } from './routes/play.$pin'
+import { Route as HostSessionIdRouteImport } from './routes/host.$sessionId'
 import { Route as QuizIdEditRouteImport } from './routes/quiz.$id.edit'
 
 const DashboardRoute = DashboardRouteImport.update({
@@ -29,6 +31,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayPinRoute = PlayPinRouteImport.update({
+  id: '/play/$pin',
+  path: '/play/$pin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HostSessionIdRoute = HostSessionIdRouteImport.update({
+  id: '/host/$sessionId',
+  path: '/host/$sessionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuizIdEditRoute = QuizIdEditRouteImport.update({
   id: '/quiz/$id/edit',
   path: '/quiz/$id/edit',
@@ -39,12 +51,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/host/$sessionId': typeof HostSessionIdRoute
+  '/play/$pin': typeof PlayPinRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/host/$sessionId': typeof HostSessionIdRoute
+  '/play/$pin': typeof PlayPinRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
 }
 export interface FileRoutesById {
@@ -52,20 +68,43 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/host/$sessionId': typeof HostSessionIdRoute
+  '/play/$pin': typeof PlayPinRoute
   '/quiz/$id/edit': typeof QuizIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/quiz/$id/edit'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/host/$sessionId'
+    | '/play/$pin'
+    | '/quiz/$id/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/quiz/$id/edit'
-  id: '__root__' | '/' | '/auth' | '/dashboard' | '/quiz/$id/edit'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/host/$sessionId'
+    | '/play/$pin'
+    | '/quiz/$id/edit'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/host/$sessionId'
+    | '/play/$pin'
+    | '/quiz/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
+  HostSessionIdRoute: typeof HostSessionIdRoute
+  PlayPinRoute: typeof PlayPinRoute
   QuizIdEditRoute: typeof QuizIdEditRoute
 }
 
@@ -92,6 +131,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/$pin': {
+      id: '/play/$pin'
+      path: '/play/$pin'
+      fullPath: '/play/$pin'
+      preLoaderRoute: typeof PlayPinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/host/$sessionId': {
+      id: '/host/$sessionId'
+      path: '/host/$sessionId'
+      fullPath: '/host/$sessionId'
+      preLoaderRoute: typeof HostSessionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quiz/$id/edit': {
       id: '/quiz/$id/edit'
       path: '/quiz/$id/edit'
@@ -106,8 +159,19 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
+  HostSessionIdRoute: HostSessionIdRoute,
+  PlayPinRoute: PlayPinRoute,
   QuizIdEditRoute: QuizIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
