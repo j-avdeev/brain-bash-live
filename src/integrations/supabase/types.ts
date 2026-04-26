@@ -203,6 +203,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          is_poll: boolean
           order_index: number
           points: number
           question_text: string
@@ -213,6 +214,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          is_poll?: boolean
           order_index?: number
           points?: number
           question_text: string
@@ -223,6 +225,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          is_poll?: boolean
           order_index?: number
           points?: number
           question_text?: string
