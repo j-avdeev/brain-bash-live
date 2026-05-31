@@ -11,7 +11,7 @@ const normalizeBasePath = (basePath: string) => {
   return `/${basePath.replace(/^\/+|\/+$/g, "")}/`;
 };
 
-const repositoryName = process.env.GITHUB_REPOSITORY?.split("/").pop() ?? "brain-bash-live";
+const repositoryName = process.env.GITHUB_REPOSITORY?.split("/").pop() ?? "quizpop";
 const isGitHubPagesBuild =
   process.env.GITHUB_PAGES === "true" || process.env.npm_lifecycle_event === "build:pages";
 const githubPagesBase = normalizeBasePath(process.env.GITHUB_PAGES_BASE_PATH ?? repositoryName);

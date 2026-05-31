@@ -59,7 +59,7 @@ Before the workflow can deploy successfully, add these repository secrets in Git
 Then open the repository settings on GitHub and set Pages to deploy from GitHub Actions. The site will be served at:
 
 ```text
-https://<your-github-user-or-org>.github.io/brain-bash-live/
+https://<your-github-user-or-org>.github.io/quizpop/
 ```
 
 For a local static Pages build, run:
