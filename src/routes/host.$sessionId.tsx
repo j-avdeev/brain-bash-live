@@ -218,11 +218,16 @@ function HostView() {
 }
 
 function Lobby({ pin, players, onStart, canStart }: { pin: string; players: PlayerRow[]; onStart: () => void; canStart: boolean }) {
-  const joinUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const joinUrl =
+    typeof window !== "undefined"
+      ? new URL(import.meta.env.BASE_URL, window.location.origin).toString()
+      : "";
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
       <div className="rounded-3xl border border-border bg-card p-6 text-center shadow-card sm:p-8">
-        <p className="text-sm uppercase tracking-wider text-muted-foreground">Go to {joinUrl.replace(/^https?:\/\//, "")}</p>
+        <p className="text-sm uppercase tracking-wider text-muted-foreground">
+          Go to {joinUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+        </p>
         <p className="mt-4 text-sm uppercase tracking-wider text-muted-foreground">Game PIN</p>
         <div className="mt-2 font-display text-7xl font-extrabold tracking-[0.15em] text-primary sm:text-8xl">
           {pin}

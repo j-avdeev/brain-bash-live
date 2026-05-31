@@ -34,7 +34,10 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin + "/dashboard",
+            emailRedirectTo: new URL(
+              `${import.meta.env.BASE_URL}dashboard`,
+              window.location.origin,
+            ).toString(),
             data: { display_name: displayName || email.split("@")[0] },
           },
         });
